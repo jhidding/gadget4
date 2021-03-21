@@ -34,7 +34,7 @@
 # IC generation via N-GenIC
 
     NGENIC=256
-    NGENIC_2LPT
+#    NGENIC_2LPT
     CREATE_GRID
     IDS_32BIT
 

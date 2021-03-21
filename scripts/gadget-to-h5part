@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+from pathlib import Path
+
+def convert(input_paths: Path, output_path: Path, particle_type: str):
+    import h5py
+    import numpy as np
+    output_file = h5py.File(output_path, "w")
+    for i, path in enumerate(input_paths):
+        x = h5py.File(path, "r")
+        g = output_file.create_group(f"Step#{i}")
+        g.create_dataset("id", dtype=np.int64, data=x[particle_type]["ParticleIDs"])
+
+        for k, label in enumerate(["x", "y", "z"]):
+            g.create_dataset(label, dtype=np.float64, data=x[particle_type]["Coordinates"][:,k])
+
+        for k, label in enumerate(["vx", "vy", "vz"]):
+            g.create_dataset(label, dtype=np.float64, data=x[particle_type]["Velocities"][:,k])
+        x.close()
+    output_file.close()
+    
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="Convert HDF5 output of Gadget-4 to H5Part (also HDF5)")
+    parser.add_argument("-o", "--output", help="output file", type=Path, required=True)
+    parser.add_argument("-p", "--particle-type", help="particle type (default: PartType1)", default="PartType1")
+    parser.add_argument("input", help="input files", type=Path, nargs="+")
+    args = parser.parse_args()
+
+    assert all(f.exists() for f in args.input)
+    convert(args.input, args.output, particle_type=args.particle_type)
+
