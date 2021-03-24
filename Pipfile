@@ -9,6 +9,7 @@ numpy = "*"
 h5py = "*"
 matplotlib = "*"
 ipyvolume = "*"
+scipy = "*"
 
 [dev-packages]
 

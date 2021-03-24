@@ -1,0 +1,43 @@
+#!/usr/bin/env python
+from pathlib import Path
+import numpy as np
+from cft import Box
+
+
+def compute_potential(input_path: Path, output_path: Path):
+    import h5py
+    import numpy as np
+
+    input_file = h5py.File(input_path, "r")
+    output_file = h5py.File(output_path, "w")
+
+    N = input_file["Parameters"].attrs["GridSize"]
+    L = input_file["Parameters"].attrs["BoxSize"]
+    t = input_file["Header"].attrs["Time"]
+
+    v = input_file["PartType1"]["Velocities"][:] \
+        .reshape([N, N, N, 3]) \
+        .transpose([2, 1, 0, 3])
+    v_k = [np.fft.fftn(v[...,i]) for i in range(3)]
+    box = Box(3, N, L)
+    with np.errstate(invalid="ignore"):
+        phi_k = -1j * (box.K[0]*v_k[0] \
+                     + box.K[1]*v_k[1] \
+                     + box.K[2]*v_k[2]) / box.k**2
+    phi_k[0,0,0] = 0
+    phi = np.fft.ifftn(phi_k)
+    output_file.create_dataset(
+        "Potential", dtype=np.float64, data=phi.real)
+    output_file.close()
+    
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="Compute potential from Gadget4/NGenic ICs")
+    parser.add_argument("input", help="input file", type=Path)
+    parser.add_argument("output", help="output file", type=Path)
+    args = parser.parse_args()
+
+    assert args.input.exists()
+    compute_potential(args.input, args.output)
+

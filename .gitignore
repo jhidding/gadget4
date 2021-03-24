@@ -1,4 +1,4 @@
-
+__pycache__
 
 #eclipse stuff
 .cproject
@@ -54,7 +54,6 @@ processes_*.txt
 *.log
 
 #Config files
-/Config.sh
 /Makefile.systype
 /param.txt
 /parameter.txt
